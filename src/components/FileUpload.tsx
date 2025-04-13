@@ -15,6 +15,36 @@ const FileUpload: React.FC<FileUploadProps> = ({ onStudentsLoaded }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
 
+  const parseCSV = (text: string): Student[] => {
+    const lines = text.split(/\r\n|\n/);
+    const students: Student[] = [];
+    
+    // Skip header row if it exists
+    const startRow = lines[0].toLowerCase().includes('name') || 
+                     lines[0].toLowerCase().includes('enrollment') ? 1 : 0;
+    
+    for (let i = startRow; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const parts = line.split(',');
+      if (parts.length >= 2) {
+        const name = parts[0].trim();
+        const enrollmentNumber = parts[1].trim();
+        
+        if (name && enrollmentNumber) {
+          students.push({
+            id: `s-${Date.now()}-${i}`,
+            name: name,
+            enrollmentNumber: enrollmentNumber
+          });
+        }
+      }
+    }
+    
+    return students;
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
       return;
@@ -22,30 +52,45 @@ const FileUpload: React.FC<FileUploadProps> = ({ onStudentsLoaded }) => {
 
     const file = e.target.files[0];
     setFileName(file.name);
-
-    // In a real app, you'd parse the CSV/Excel file
-    // For this demo, we're using mock data that simulates file parsing
     setIsLoading(true);
     
     try {
-      // Simulate file processing delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const reader = new FileReader();
       
-      // Sample student data that would come from parsing the file
-      const mockStudents: Student[] = [
-        { id: `s-${Date.now()}-1`, name: "Alex Johnson", enrollmentNumber: "EN001" },
-        { id: `s-${Date.now()}-2`, name: "Bradley Cooper", enrollmentNumber: "EN002" },
-        { id: `s-${Date.now()}-3`, name: "Cassandra Lee", enrollmentNumber: "EN003" },
-        { id: `s-${Date.now()}-4`, name: "Daniel Smith", enrollmentNumber: "EN004" },
-        { id: `s-${Date.now()}-5`, name: "Emma Watson", enrollmentNumber: "EN005" },
-      ];
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        let extractedStudents: Student[] = [];
+        
+        if (fileExtension === 'csv') {
+          extractedStudents = parseCSV(content);
+        } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+          // For Excel files, we're doing a simplified parsing
+          // In a real app, you'd use a library like xlsx or exceljs
+          // This basic approach treats Excel content like CSV for demo purposes
+          extractedStudents = parseCSV(content);
+        }
+        
+        if (extractedStudents.length === 0) {
+          toast.error("No student data found in the file");
+          return;
+        }
+        
+        onStudentsLoaded(extractedStudents);
+        toast.success(`Loaded ${extractedStudents.length} students from file`);
+        setIsLoading(false);
+      };
       
-      onStudentsLoaded(mockStudents);
-      toast.success(`Loaded ${mockStudents.length} students from file`);
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+        setIsLoading(false);
+      };
+      
+      // Read file as text
+      reader.readAsText(file);
     } catch (error) {
       console.error("Error processing file:", error);
       toast.error("Failed to process file");
-    } finally {
       setIsLoading(false);
     }
   };
