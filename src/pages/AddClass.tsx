@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import FileUpload from "@/components/FileUpload";
 import ClassForm from "@/components/ClassForm";
 import { Student } from "@/context/DataContext";

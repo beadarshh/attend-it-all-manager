@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import AttendanceTable from "@/components/AttendanceTable";
 import AttendanceSheet from "@/components/AttendanceSheet";
 import { useData } from "@/context/DataContext";

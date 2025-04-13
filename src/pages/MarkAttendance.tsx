@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
+import { Layout } from "@/components/Layout";
 import AttendanceSheet from "@/components/AttendanceSheet";
 import { useData } from "@/context/DataContext";
 import { Button } from "@/components/ui/button";

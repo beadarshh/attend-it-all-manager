@@ -37,7 +37,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar defaultCollapsed={false}>
+      <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2">
             <CalendarClock className="h-6 w-6" />
@@ -62,7 +62,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <Link to="/profile">
               <Button variant="ghost" className="w-full justify-start">
                 <User className="mr-2 h-4 w-4" />
-                My Profile
+                Profile
               </Button>
             </Link>
           </div>
@@ -126,3 +126,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     </div>
   );
 };
+
+// Also export as default for backward compatibility
+export default Layout;
