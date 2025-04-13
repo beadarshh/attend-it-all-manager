@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import FileUpload from "@/components/FileUpload";
 import ClassForm from "@/components/ClassForm";
+import StudentManagement from "@/components/StudentManagement";
 import { Student } from "@/context/DataContext";
 import { useAuth } from "@/context/AuthContext";
 import { useData } from "@/context/DataContext";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AddClass = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -20,13 +22,24 @@ const AddClass = () => {
     setStudents(loadedStudents);
   };
 
+  const handleStudentsChange = (updatedStudents: Student[]) => {
+    setStudents(updatedStudents);
+  };
+
   const handleFormSubmit = async (values: any) => {
     if (!user) return;
+
+    // Make sure we have at least one student
+    if (students.length === 0) {
+      alert("Please add at least one student before creating the class");
+      return;
+    }
 
     const success = await addClass({
       ...values,
       teacherId: user.id,
       teacherName: user.name,
+      students: students
     });
 
     if (success) {
@@ -44,30 +57,42 @@ const AddClass = () => {
           <div>
             <h1 className="text-3xl font-bold">Add New Class</h1>
             <p className="text-muted-foreground mt-1">
-              Upload a student list and create a new class
+              Upload a student list or add students manually to create a new class
             </p>
           </div>
         </div>
 
         <div className="space-y-6">
-          <FileUpload onStudentsLoaded={handleStudentsLoaded} />
-
-          {students.length > 0 && user && (
-            <>
-              <div className="bg-muted p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Uploaded Student List</h3>
-                <p className="text-sm text-muted-foreground">
-                  {students.length} students loaded successfully
-                </p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Step 1: Add Students</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FileUpload onStudentsLoaded={handleStudentsLoaded} />
+              
+              <div className="border-t pt-6">
+                <StudentManagement 
+                  students={students} 
+                  onStudentsChange={handleStudentsChange} 
+                />
               </div>
+            </CardContent>
+          </Card>
 
-              <ClassForm
-                students={students}
-                teacherId={user.id}
-                teacherName={user.name}
-                onSubmit={handleFormSubmit}
-              />
-            </>
+          {user && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Step 2: Class Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ClassForm
+                  students={students}
+                  teacherId={user.id}
+                  teacherName={user.name}
+                  onSubmit={handleFormSubmit}
+                />
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
