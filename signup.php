@@ -46,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     $error = "Admin with this name already exists";
                 } else {
                     // Insert new admin
-                    $insert_query = "INSERT INTO admin (name, email, password, login_time) VALUES (?, ?, ?, NOW())";
+                    $insert_query = "INSERT INTO admin (name, email, password) VALUES (?, ?, ?)";
                     $insert_stmt = $conn->prepare($insert_query);
                     $insert_stmt->bind_param("sss", $name, $admin_email, $hashed_password);
                     
@@ -105,7 +105,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     $insert_stmt->bind_param("ssss", $name, $email, $hashed_password, $phone);
                     
                     if ($insert_stmt->execute()) {
-                        $success = "Teacher account created successfully! Please login.";
+                        // Set session variables for immediate login
+                        $_SESSION['user_id'] = $insert_stmt->insert_id;
+                        $_SESSION['name'] = $name;
+                        $_SESSION['email'] = $email;
+                        $_SESSION['phone'] = $phone;
+                        $_SESSION['role'] = 'teacher';
+                        
+                        // Redirect to teacher dashboard
+                        header("Location: teacher/dashboard.php");
+                        exit;
                     } else {
                         $error = "Error: " . $insert_stmt->error;
                     }

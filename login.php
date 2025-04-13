@@ -34,15 +34,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
             $table = ($role === 'admin') ? 'admin' : 'teachers';
             
             if ($role === 'admin') {
-                // For admin, try to find by name
-                $query = "SELECT * FROM $table WHERE name = ?";
+                // For admin, try to find by name or email
+                $query = "SELECT * FROM $table WHERE name = ? OR email = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("ss", $login_identifier, $login_identifier);
             } else {
                 // For teachers, look up by email
                 $query = "SELECT * FROM $table WHERE email = ?";
+                $stmt = $conn->prepare($query);
+                $stmt->bind_param("s", $login_identifier);
             }
             
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("s", $login_identifier);
             $stmt->execute();
             $result = $stmt->get_result();
             
@@ -80,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['name'] = $user['name'];
                         $_SESSION['email'] = $user['email'];
+                        $_SESSION['phone'] = $user['phone'];
                         $_SESSION['role'] = $role;
                         
                         // Redirect to teacher dashboard
@@ -190,6 +193,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
                                     <input type="text" id="phone" name="phone" placeholder="Enter your phone number" required>
                                 </div>
                                 
+                                <input type="hidden" name="role" value="teacher">
                                 <button type="submit" name="signup" class="btn btn-primary">Create Account</button>
                             </form>
                         </div>

@@ -6,7 +6,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: "teacher";
+  role: "teacher" | "admin";
   phone?: string;
 };
 
@@ -45,10 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Sample teacher credentials
+      // In a real application, this would make a fetch request to your PHP backend
+      // For now, we'll simulate a successful login if the credentials match our test data
       if (email === "teacher@example.com" && password === "password") {
         const userData: User = {
           id: "teacher-123",
@@ -85,10 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Create a new user with the teacher role
+      // In a real application, this would make a fetch request to your PHP backend
+      // For now, we'll simulate a successful signup
       const userData: User = {
         id: `teacher-${Date.now()}`,
         name: name,
@@ -117,10 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Update user data
+      // In a real application, this would make a fetch request to your PHP backend
+      // For now, we'll simulate a successful profile update
       const updatedUser: User = {
         ...user,
         name,
@@ -142,6 +136,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    
+    // In a real application, you might want to redirect to your PHP logout endpoint
+    // window.location.href = "/logout.php";
+    
     toast.success("Logout successful");
   };
 

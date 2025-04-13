@@ -12,12 +12,14 @@ function getDbConnection() {
     
     // Check connection
     if ($conn->connect_error) {
+        error_log("Connection failed: " . $conn->connect_error);
         return false;
     }
     
     // Check if database exists, if not create it
     $sql = "CREATE DATABASE IF NOT EXISTS " . DB_NAME;
     if ($conn->query($sql) === FALSE) {
+        error_log("Error creating database: " . $conn->error);
         return false;
     }
     
