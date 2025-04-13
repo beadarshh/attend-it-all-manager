@@ -31,9 +31,14 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 
-const loginSchema = z.object({
+const loginTeacherSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const loginAdminSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  adminCode: z.string().min(6, "Admin code is required"),
 });
 
 const signupSchema = z.object({
@@ -43,20 +48,29 @@ const signupSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 characters"),
 });
 
-type LoginValues = z.infer<typeof loginSchema>;
+type LoginTeacherValues = z.infer<typeof loginTeacherSchema>;
+type LoginAdminValues = z.infer<typeof loginAdminSchema>;
 type SignupValues = z.infer<typeof signupSchema>;
 
 const Login = () => {
-  const [role, setRole] = useState<"admin" | "teacher">("teacher");
+  const [role, setRole] = useState<"admin" | "teacher">("admin");
   const [activeTab, setActiveTab] = useState("login");
-  const { login, signup } = useAuth();
+  const { login, loginAdmin, signup } = useAuth();
   const navigate = useNavigate();
 
-  const loginForm = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+  const loginTeacherForm = useForm<LoginTeacherValues>({
+    resolver: zodResolver(loginTeacherSchema),
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const loginAdminForm = useForm<LoginAdminValues>({
+    resolver: zodResolver(loginAdminSchema),
+    defaultValues: {
+      name: "",
+      adminCode: "",
     },
   });
 
@@ -70,10 +84,19 @@ const Login = () => {
     },
   });
 
-  const onLoginSubmit = async (values: LoginValues) => {
-    const success = await login(values.email, values.password, role);
-    if (success) {
-      navigate(role === "admin" ? "/admin" : "/dashboard");
+  const onLoginSubmit = async (values: LoginTeacherValues | LoginAdminValues) => {
+    if (role === "admin") {
+      const adminValues = values as LoginAdminValues;
+      const success = await loginAdmin(adminValues.name, adminValues.adminCode);
+      if (success) {
+        navigate("/admin");
+      }
+    } else {
+      const teacherValues = values as LoginTeacherValues;
+      const success = await login(teacherValues.email, teacherValues.password, role);
+      if (success) {
+        navigate("/dashboard");
+      }
     }
   };
 
@@ -141,46 +164,89 @@ const Login = () => {
               </div>
 
               <TabsContent value="login">
-                <Form {...loginForm}>
-                  <form
-                    onSubmit={loginForm.handleSubmit(onLoginSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter your email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter your password"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full">
-                      Sign In
-                    </Button>
-                  </form>
-                </Form>
+                {role === "admin" ? (
+                  <Form {...loginAdminForm}>
+                    <form
+                      onSubmit={loginAdminForm.handleSubmit(onLoginSubmit)}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={loginAdminForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Admin Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter admin name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginAdminForm.control}
+                        name="adminCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Admin Code</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Enter admin code (232774)"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full">
+                        Sign In
+                      </Button>
+                    </form>
+                  </Form>
+                ) : (
+                  <Form {...loginTeacherForm}>
+                    <form
+                      onSubmit={loginTeacherForm.handleSubmit(onLoginSubmit)}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={loginTeacherForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginTeacherForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Enter your password"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full">
+                        Sign In
+                      </Button>
+                    </form>
+                  </Form>
+                )}
               </TabsContent>
 
               <TabsContent value="signup">
