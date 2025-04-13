@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Student } from "@/context/DataContext";
 import { Upload, FileText } from "lucide-react";
+import * as XLSX from 'xlsx';
 
 interface FileUploadProps {
   onStudentsLoaded: (students: Student[]) => void;
@@ -19,15 +20,27 @@ const FileUpload: React.FC<FileUploadProps> = ({ onStudentsLoaded }) => {
     const lines = text.split(/\r\n|\n/);
     const students: Student[] = [];
     
-    // Skip header row if it exists
-    const startRow = lines[0].toLowerCase().includes('name') || 
-                     lines[0].toLowerCase().includes('enrollment') ? 1 : 0;
+    if (lines.length === 0) {
+      return students;
+    }
+    
+    // Skip header row if it exists - more robust detection
+    const firstLine = lines[0].toLowerCase();
+    const startRow = firstLine.includes('name') || 
+                   firstLine.includes('enrollment') ||
+                   firstLine.includes('student') ? 1 : 0;
+    
+    console.log("CSV parsing - total lines:", lines.length);
+    console.log("Starting from row:", startRow);
     
     for (let i = startRow; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       
-      const parts = line.split(',');
+      // Support both comma and tab delimited files
+      const delimiter = line.includes('\t') ? '\t' : ',';
+      const parts = line.split(delimiter);
+      
       if (parts.length >= 2) {
         const name = parts[0].trim();
         const enrollmentNumber = parts[1].trim();
@@ -35,14 +48,50 @@ const FileUpload: React.FC<FileUploadProps> = ({ onStudentsLoaded }) => {
         if (name && enrollmentNumber) {
           students.push({
             id: `s-${Date.now()}-${i}`,
-            name: name,
-            enrollmentNumber: enrollmentNumber
+            name,
+            enrollmentNumber
           });
         }
       }
     }
     
     return students;
+  };
+
+  const parseExcel = (data: ArrayBuffer): Student[] => {
+    try {
+      // Parse Excel data using xlsx library
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      // Convert worksheet to JSON
+      const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+      console.log("Excel data parsed:", jsonData);
+      
+      // Map the data to students, handling different possible column names
+      return jsonData.map((row, index) => {
+        // Try to find name and enrollment number from various possible column names
+        const name = row.Name || row.name || row.StudentName || row['Student Name'] || 
+                    row.STUDENT || row.Student || row['Full Name'] || Object.values(row)[0];
+                    
+        const enrollmentNumber = row.Enrollment || row.enrollment || row.EnrollmentNumber || 
+                               row['Enrollment Number'] || row.ID || row.Id || row.id || 
+                               row.Roll || row['Roll Number'] || Object.values(row)[1];
+        
+        if (name && enrollmentNumber) {
+          return {
+            id: `s-${Date.now()}-${index}`,
+            name: String(name).trim(),
+            enrollmentNumber: String(enrollmentNumber).trim()
+          };
+        }
+        return null;
+      }).filter(Boolean) as Student[];
+    } catch (error) {
+      console.error("Error parsing Excel:", error);
+      return [];
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,38 +105,76 @@ const FileUpload: React.FC<FileUploadProps> = ({ onStudentsLoaded }) => {
     
     try {
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
-      const reader = new FileReader();
+      console.log("Processing file:", file.name, "Extension:", fileExtension);
       
-      reader.onload = (event) => {
-        const content = event.target?.result as string;
-        let extractedStudents: Student[] = [];
+      if (fileExtension === 'csv') {
+        // Handle CSV files
+        const reader = new FileReader();
         
-        if (fileExtension === 'csv') {
-          extractedStudents = parseCSV(content);
-        } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-          // For Excel files, we're doing a simplified parsing
-          // In a real app, you'd use a library like xlsx or exceljs
-          // This basic approach treats Excel content like CSV for demo purposes
-          extractedStudents = parseCSV(content);
-        }
+        reader.onload = (event) => {
+          if (!event.target?.result) {
+            toast.error("Failed to read file content");
+            setIsLoading(false);
+            return;
+          }
+          
+          const content = event.target.result as string;
+          const students = parseCSV(content);
+          
+          if (students.length === 0) {
+            toast.error("No student data found in the CSV file");
+            setIsLoading(false);
+            return;
+          }
+          
+          console.log("CSV students extracted:", students);
+          onStudentsLoaded(students);
+          toast.success(`Loaded ${students.length} students from CSV file`);
+          setIsLoading(false);
+        };
         
-        if (extractedStudents.length === 0) {
-          toast.error("No student data found in the file");
-          return;
-        }
+        reader.onerror = () => {
+          toast.error("Failed to read CSV file");
+          setIsLoading(false);
+        };
         
-        onStudentsLoaded(extractedStudents);
-        toast.success(`Loaded ${extractedStudents.length} students from file`);
+        reader.readAsText(file);
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        // Handle Excel files
+        const reader = new FileReader();
+        
+        reader.onload = (event) => {
+          if (!event.target?.result) {
+            toast.error("Failed to read Excel file");
+            setIsLoading(false);
+            return;
+          }
+          
+          const data = event.target.result as ArrayBuffer;
+          const students = parseExcel(data);
+          
+          if (students.length === 0) {
+            toast.error("No student data found in the Excel file");
+            setIsLoading(false);
+            return;
+          }
+          
+          console.log("Excel students extracted:", students);
+          onStudentsLoaded(students);
+          toast.success(`Loaded ${students.length} students from Excel file`);
+          setIsLoading(false);
+        };
+        
+        reader.onerror = () => {
+          toast.error("Failed to read Excel file");
+          setIsLoading(false);
+        };
+        
+        reader.readAsArrayBuffer(file);
+      } else {
+        toast.error("Unsupported file format. Please upload a CSV or Excel file.");
         setIsLoading(false);
-      };
-      
-      reader.onerror = () => {
-        toast.error("Failed to read file");
-        setIsLoading(false);
-      };
-      
-      // Read file as text
-      reader.readAsText(file);
+      }
     } catch (error) {
       console.error("Error processing file:", error);
       toast.error("Failed to process file");
