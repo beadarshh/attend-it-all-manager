@@ -36,10 +36,10 @@ const AdminDashboard = () => {
     }
 
     const filtered = attendanceRecords.filter((record) => {
-      if (selectedClassId && record.classId !== selectedClassId) {
+      if (selectedClassId && selectedClassId !== "all-classes" && record.classId !== selectedClassId) {
         return false;
       }
-      if (selectedDate && record.date !== selectedDate) {
+      if (selectedDate && selectedDate !== "all-dates" && record.date !== selectedDate) {
         return false;
       }
       return true;
@@ -130,7 +130,7 @@ const AdminDashboard = () => {
                   <SelectValue placeholder="Filter by class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
+                  <SelectItem value="all-classes">All Classes</SelectItem>
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.subject} - {cls.branch}
@@ -147,7 +147,7 @@ const AdminDashboard = () => {
                   <SelectValue placeholder="Filter by date" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Dates</SelectItem>
+                  <SelectItem value="all-dates">All Dates</SelectItem>
                   {[...new Set(attendanceRecords.map((r) => r.date))].map(
                     (date) => (
                       <SelectItem key={date} value={date}>
@@ -200,10 +200,10 @@ const AdminDashboard = () => {
                 <tbody>
                   {attendanceRecords
                     .filter((record) => {
-                      if (selectedClassId && record.classId !== selectedClassId) {
+                      if (selectedClassId && selectedClassId !== "all-classes" && record.classId !== selectedClassId) {
                         return false;
                       }
-                      if (selectedDate && record.date !== selectedDate) {
+                      if (selectedDate && selectedDate !== "all-dates" && record.date !== selectedDate) {
                         return false;
                       }
                       return true;

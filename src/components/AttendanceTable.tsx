@@ -85,7 +85,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
               <SelectValue placeholder="Filter by date" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Dates</SelectItem>
+              <SelectItem value="all-dates">All Dates</SelectItem>
               {[...new Set(attendanceRecords.map((record) => record.date))].map(
                 (date) => (
                   <SelectItem key={date} value={date}>
