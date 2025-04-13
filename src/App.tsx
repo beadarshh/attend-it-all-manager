@@ -8,10 +8,10 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
 import Login from "./pages/Login";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 import AddClass from "./pages/AddClass";
 import MarkAttendance from "./pages/MarkAttendance";
 import AttendanceHistory from "./pages/AttendanceHistory";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,10 +19,10 @@ const queryClient = new QueryClient();
 // Protected Route component
 const ProtectedRoute = ({ 
   children, 
-  allowedRoles = ["admin", "teacher"] 
+  allowedRoles = ["teacher"] 
 }: { 
   children: React.ReactNode, 
-  allowedRoles?: ("admin" | "teacher")[] 
+  allowedRoles?: ("teacher")[] 
 }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
 
@@ -39,14 +39,14 @@ const ProtectedRoute = ({
   }
 
   if (user && !allowedRoles.includes(user.role)) {
-    return <Navigate to={user.role === "admin" ? "/admin" : "/dashboard"} />;
+    return <Navigate to="/dashboard" />;
   }
 
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Routes>
@@ -54,7 +54,7 @@ const AppRoutes = () => {
         path="/" 
         element={
           isAuthenticated ? (
-            <Navigate to={user?.role === "admin" ? "/admin" : "/dashboard"} />
+            <Navigate to="/dashboard" />
           ) : (
             <Navigate to="/login" />
           )
@@ -66,7 +66,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={["teacher"]}>
+          <ProtectedRoute>
             <TeacherDashboard />
           </ProtectedRoute>
         }
@@ -74,7 +74,7 @@ const AppRoutes = () => {
       <Route
         path="/add-class"
         element={
-          <ProtectedRoute allowedRoles={["teacher"]}>
+          <ProtectedRoute>
             <AddClass />
           </ProtectedRoute>
         }
@@ -82,7 +82,7 @@ const AppRoutes = () => {
       <Route
         path="/mark-attendance/:classId"
         element={
-          <ProtectedRoute allowedRoles={["teacher"]}>
+          <ProtectedRoute>
             <MarkAttendance />
           </ProtectedRoute>
         }
@@ -90,18 +90,16 @@ const AppRoutes = () => {
       <Route
         path="/attendance-history/:classId"
         element={
-          <ProtectedRoute allowedRoles={["teacher"]}>
+          <ProtectedRoute>
             <AttendanceHistory />
           </ProtectedRoute>
         }
       />
-      
-      {/* Admin Routes */}
       <Route
-        path="/admin"
+        path="/profile"
         element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminDashboard />
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

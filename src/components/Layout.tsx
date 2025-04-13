@@ -1,15 +1,32 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { LogOut, UserCircle } from "lucide-react";
+import { Button } from "./ui/button";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "./ui/dropdown-menu";
+import { 
+  Sidebar, 
+  SidebarHeader, 
+  SidebarContent, 
+  SidebarFooter, 
+  SidebarTrigger 
+} from "./ui/sidebar";
+import { 
+  CalendarClock, 
+  FileSpreadsheet, 
+  Home, 
+  ListChecks, 
+  LogOut, 
+  PlusCircle,
+  User
+} from "lucide-react";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -19,39 +36,93 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {user && (
-        <header className="bg-primary py-4 px-6 text-primary-foreground shadow-md">
-          <div className="container mx-auto flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold">Attend-It-All</h1>
-              <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{user.role === "admin" ? "Admin" : "Teacher"}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <UserCircle className="h-6 w-6" />
-                <span>{user.name}</span>
-              </div>
-              <Button variant="secondary" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+    <div className="flex min-h-screen">
+      <Sidebar defaultCollapsed={false}>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 px-2">
+            <CalendarClock className="h-6 w-6" />
+            <span className="font-bold">Attend-It-All</span>
+          </div>
+          <SidebarTrigger />
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="flex flex-col gap-2">
+            <Link to="/dashboard">
+              <Button variant="ghost" className="w-full justify-start">
+                <Home className="mr-2 h-4 w-4" />
+                Dashboard
               </Button>
-            </div>
+            </Link>
+            <Link to="/add-class">
+              <Button variant="ghost" className="w-full justify-start">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Class
+              </Button>
+            </Link>
+            <Link to="/profile">
+              <Button variant="ghost" className="w-full justify-start">
+                <User className="mr-2 h-4 w-4" />
+                My Profile
+              </Button>
+            </Link>
+          </div>
+        </SidebarContent>
+        <SidebarFooter>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="w-full justify-start">
+                <div className="flex items-center gap-2 truncate">
+                  <User className="h-4 w-4" />
+                  <span className="truncate">{user?.name || "User"}</span>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link to="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <div className="flex-1 overflow-auto">
+        <header className="border-b bg-background px-4 py-3 flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Teacher Dashboard</h2>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              {user?.email}
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Account
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
-      )}
-      <main className="flex-1 py-8 px-4">
-        <div className="container mx-auto">
-          {children}
-        </div>
-      </main>
-      <footer className="bg-muted py-4 text-center text-muted-foreground">
-        <div className="container mx-auto">
-          <p>&copy; {new Date().getFullYear()} Attend-It-All Management System</p>
-        </div>
-      </footer>
+        <main className="p-4 md:p-6">{children}</main>
+      </div>
     </div>
   );
 };
-
-export default Layout;

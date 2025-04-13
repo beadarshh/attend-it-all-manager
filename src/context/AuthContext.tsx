@@ -6,15 +6,17 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "teacher";
+  role: "teacher";
+  phone?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, role: "admin" | "teacher") => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   signup: (name: string, email: string, password: string, phone: string) => Promise<boolean>;
+  updateProfile: (name: string, email: string, phone: string) => Promise<boolean>;
   logout: () => void;
 };
 
@@ -33,12 +35,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string, role: "admin" | "teacher"): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // In a real application, this would be an API call to authenticate the user
-      // For this demo, we'll simulate a successful login
-
       // Make sure email and password are not empty
       if (!email || !password) {
         toast.error("Please provide email and password");
@@ -49,28 +48,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Sample admin credentials
-      if (role === "admin" && email === "admin@example.com" && password === "password") {
-        const userData: User = {
-          id: "admin-123",
-          name: "Admin User",
-          email: email,
-          role: "admin"
-        };
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-        toast.success("Login successful");
-        setIsLoading(false);
-        return true;
-      }
-
       // Sample teacher credentials
-      if (role === "teacher" && email === "teacher@example.com" && password === "password") {
+      if (email === "teacher@example.com" && password === "password") {
         const userData: User = {
           id: "teacher-123",
           name: "John Doe",
           email: email,
-          role: "teacher"
+          role: "teacher",
+          phone: "1234567890"
         };
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
@@ -93,9 +78,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string, phone: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // In a real application, this would be an API call to register the user
-      // For this demo, we'll simulate a successful registration
-
       // Make sure all fields are filled
       if (!name || !email || !password || !phone) {
         toast.error("Please fill all fields");
@@ -111,7 +93,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: `teacher-${Date.now()}`,
         name: name,
         email: email,
-        role: "teacher"
+        role: "teacher",
+        phone: phone
       };
 
       setUser(userData);
@@ -123,6 +106,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Signup error:", error);
       toast.error("An error occurred during signup");
       setIsLoading(false);
+      return false;
+    }
+  };
+
+  const updateProfile = async (name: string, email: string, phone: string): Promise<boolean> => {
+    try {
+      if (!user) {
+        toast.error("You must be logged in to update profile");
+        return false;
+      }
+
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update user data
+      const updatedUser: User = {
+        ...user,
+        name,
+        email,
+        phone
+      };
+
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      toast.success("Profile updated successfully");
+      return true;
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error("An error occurred while updating profile");
       return false;
     }
   };
@@ -141,6 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         signup,
+        updateProfile,
         logout
       }}
     >
