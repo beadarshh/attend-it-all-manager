@@ -126,9 +126,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_attendance'])) 
                 <a href="attendance_history.php" class="nav-link">
                     <i class="fas fa-history"></i> Attendance History
                 </a>
-                <a href="profile.php" class="nav-link">
-                    <i class="fas fa-user"></i> Profile
-                </a>
             </nav>
         </div>
         
@@ -224,6 +221,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_attendance'])) 
                                         <input type="date" id="date" name="date" value="<?php echo $today; ?>" required>
                                     </div>
                                     
+                                    <div class="bulk-actions" style="margin-top: 1rem; margin-bottom: 1rem;">
+                                        <button type="button" class="btn btn-sm btn-outline" onclick="markAllPresent()">
+                                            <i class="fas fa-user-check"></i> Mark All Present
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline" onclick="markAllAbsent()">
+                                            <i class="fas fa-user-times"></i> Mark All Absent
+                                        </button>
+                                    </div>
+                                    
                                     <div class="table-container" style="margin-top: 1.5rem;">
                                         <table>
                                             <thead>
@@ -270,6 +276,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_attendance'])) 
                                 </form>
                             </div>
                         </div>
+                        
+                        <script>
+                            function markAllPresent() {
+                                document.querySelectorAll('.attendance-radio').forEach(radio => {
+                                    if (radio.value === 'present') {
+                                        radio.checked = true;
+                                    }
+                                });
+                            }
+                            
+                            function markAllAbsent() {
+                                document.querySelectorAll('.attendance-radio').forEach(radio => {
+                                    if (radio.value === 'absent') {
+                                        radio.checked = true;
+                                    }
+                                });
+                            }
+                        </script>
                     <?php else: ?>
                         <div class="error-message">Class not found. <a href="mark_attendance.php">Go back</a></div>
                     <?php endif; ?>

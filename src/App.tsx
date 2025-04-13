@@ -19,10 +19,10 @@ const queryClient = new QueryClient();
 // Protected Route component
 const ProtectedRoute = ({ 
   children, 
-  allowedRoles = ["teacher"] 
+  allowedRoles = ["teacher", "admin"] 
 }: { 
   children: React.ReactNode, 
-  allowedRoles?: ("teacher")[] 
+  allowedRoles?: string[]
 }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
 

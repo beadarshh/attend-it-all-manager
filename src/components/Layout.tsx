@@ -61,12 +61,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   Add Class
                 </Button>
               </Link>
-              <Link to="/profile">
-                <Button variant="ghost" className="w-full justify-start">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Button>
-              </Link>
             </div>
           </SidebarContent>
           <SidebarFooter>

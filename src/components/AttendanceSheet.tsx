@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { CalendarIcon, Check } from "lucide-react";
+import { CalendarIcon, Check, UserCheck, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -55,6 +55,24 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     );
   };
 
+  const handleMarkAllPresent = () => {
+    setAttendanceRecords(
+      students.map((student) => ({
+        studentId: student.id,
+        status: "present",
+      }))
+    );
+  };
+
+  const handleMarkAllAbsent = () => {
+    setAttendanceRecords(
+      students.map((student) => ({
+        studentId: student.id,
+        status: "absent",
+      }))
+    );
+  };
+
   const handleSubmit = () => {
     if (!date) {
       return;
@@ -89,6 +107,27 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
             />
           </PopoverContent>
         </Popover>
+      </div>
+
+      <div className="flex gap-4 mb-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleMarkAllPresent}
+          className="flex items-center text-green-600"
+        >
+          <UserCheck className="h-4 w-4 mr-2" />
+          Mark All Present
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleMarkAllAbsent}
+          className="flex items-center text-red-600"
+        >
+          <UserX className="h-4 w-4 mr-2" />
+          Mark All Absent
+        </Button>
       </div>
 
       <div className="overflow-x-auto">
