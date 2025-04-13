@@ -62,10 +62,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_class'])) {
     }
 }
 
-// Handle CSV upload
+// Handle CSV/Excel upload
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['upload_csv'])) {
     if (isset($_FILES['student_file']) && $_FILES['student_file']['error'] == 0) {
-        // Process the CSV file to get student data
+        // Process the CSV/Excel file to get student data
         $result = processStudentCSV($_FILES['student_file'], 0, $conn); // 0 for temporary class_id
         
         if ($result['success']) {
@@ -172,10 +172,10 @@ if (isset($_SESSION['uploaded_students'])) {
                             <form method="POST" action="" enctype="multipart/form-data" class="file-upload-form">
                                 <div class="file-upload">
                                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                                    <p>Drag and drop your CSV file or</p>
+                                    <p>Drag and drop your CSV or Excel file or</p>
                                     <label for="student_file" class="file-label">Browse Files</label>
-                                    <input type="file" id="student_file" name="student_file" class="file-input" accept=".csv">
-                                    <p class="file-hint">CSV file should have columns: Name, Enrollment Number</p>
+                                    <input type="file" id="student_file" name="student_file" class="file-input" accept=".csv,.xlsx,.xls">
+                                    <p class="file-hint">File should have columns: Name, Enrollment Number</p>
                                     <?php if (isset($_FILES['student_file']) && $_FILES['student_file']['error'] == 0): ?>
                                         <p class="file-name"><?php echo $_FILES['student_file']['name']; ?></p>
                                     <?php endif; ?>
@@ -236,7 +236,10 @@ if (isset($_SESSION['uploaded_students'])) {
                                     
                                     <div class="form-group">
                                         <label for="year">Year/Semester</label>
-                                        <input type="text" id="year" name="year" required>
+                                        <select id="year" name="year" required>
+                                            <option value="">Select Year</option>
+                                            <?php echo getYearOptions(); ?>
+                                        </select>
                                     </div>
                                     
                                     <div class="form-group">
