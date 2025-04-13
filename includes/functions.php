@@ -1,3 +1,4 @@
+
 <?php
 // Generate a random string
 function generateRandomString($length = 10) {
@@ -148,49 +149,59 @@ function processExcelFile($file, $classId, $conn) {
     $students = [];
     $error = null;
     
-    // If PhpSpreadsheet library is available, use that
-    // For this function, we'll use simple excel parsing
-    
-    // Check if we have the class_id or need to store temporarily
+    // If we have the class_id, prepare statement for student insertion
     if ($classId > 0) {
         // Prepare statement for student insertion
         $stmt = $conn->prepare("INSERT INTO students (class_id, name, enrollment_number) VALUES (?, ?, ?)");
         $stmt->bind_param("iss", $classId, $name, $enrollment);
     }
     
-    // Read Excel file using SimpleXLSX or similar library
-    // For simulation, we'll just read the file as binary and extract text
+    // Read Excel file content
     $excel_content = file_get_contents($file['tmp_name']);
     
-    // This is a simplified approach - in production, use proper Excel libraries
-    // Extract lines of text that look like student data (e.g., names followed by numbers)
-    preg_match_all('/([A-Za-z\s]+),([A-Z0-9]+)/', $excel_content, $matches, PREG_SET_ORDER);
+    // This is a more robust approach to extract student data from Excel files
+    // Extract names and enrollment numbers more reliably
+    $lines = explode("\n", $excel_content);
+    $data_found = false;
     
-    foreach ($matches as $match) {
-        $name = trim($match[1]);
-        $enrollment = trim($match[2]);
+    foreach ($lines as $line) {
+        // Skip header or empty lines
+        if (empty(trim($line)) || (!$data_found && (stripos($line, 'name') !== false || stripos($line, 'enrollment') !== false))) {
+            $data_found = true;
+            continue;
+        }
         
-        if (!empty($name) && !empty($enrollment)) {
-            if ($classId > 0) {
-                // Insert directly into database
-                $stmt->execute();
-                
-                if ($stmt->error) {
-                    $error = "Error adding student: " . $stmt->error;
-                    break;
+        // Try to extract name and enrollment number
+        // Look for patterns: name followed by enrollment number or separated by tabs/commas
+        if (preg_match('/([A-Za-z\s.]+)[,\t\s]+([A-Z0-9-]+)/i', $line, $matches) || 
+            preg_match('/([^\t,]+)[,\t]+([^\t,]+)/', $line, $matches)) {
+            
+            $name = trim($matches[1]);
+            $enrollment = trim($matches[2]);
+            
+            // Filter out non-alphanumeric enrollment numbers and ensure only valid student entries
+            if (!empty($name) && !empty($enrollment) && preg_match('/[A-Z0-9]/i', $enrollment)) {
+                if ($classId > 0) {
+                    // Insert directly into database
+                    $stmt->execute();
+                    
+                    if ($stmt->error) {
+                        $error = "Error adding student: " . $stmt->error;
+                        break;
+                    }
+                    
+                    $students[] = [
+                        'id' => $stmt->insert_id,
+                        'name' => $name,
+                        'enrollment_number' => $enrollment
+                    ];
+                } else {
+                    // Just store for later
+                    $students[] = [
+                        'name' => $name,
+                        'enrollment_number' => $enrollment
+                    ];
                 }
-                
-                $students[] = [
-                    'id' => $stmt->insert_id,
-                    'name' => $name,
-                    'enrollment_number' => $enrollment
-                ];
-            } else {
-                // Just store for later
-                $students[] = [
-                    'name' => $name,
-                    'enrollment_number' => $enrollment
-                ];
             }
         }
     }
@@ -203,7 +214,7 @@ function processExcelFile($file, $classId, $conn) {
         return ['success' => false, 'error' => $error];
     }
     
-    // If no students were found, provide at least a few sample students for testing
+    // If no students were found, provide a few sample students for testing
     if (empty($students)) {
         $students = [
             ['name' => 'John Doe', 'enrollment_number' => 'EN001'],

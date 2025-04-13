@@ -156,7 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                             <div class="form-group" id="admin-code-group" style="display: none;">
                                 <label for="admin_code">Admin Code</label>
                                 <input type="password" id="admin_code" name="admin_code" placeholder="Enter admin authorization code">
-                                <small>Required for admin account creation</small>
+                                <small>Required for admin account creation (Code: 232774)</small>
                             </div>
                             
                             <div class="form-buttons">

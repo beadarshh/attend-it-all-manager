@@ -63,9 +63,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
                             $_SESSION['email'] = $email;
                             
                             // Refresh teacher data
+                            $stmt = $conn->prepare($query);
+                            $stmt->bind_param("i", $teacher_id);
                             $stmt->execute();
                             $result = $stmt->get_result();
                             $teacher = $result->fetch_assoc();
+                            $stmt->close();
                         } else {
                             $error = "Error updating profile: " . $update_stmt->error;
                         }
@@ -87,9 +90,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
                     $_SESSION['email'] = $email;
                     
                     // Refresh teacher data
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param("i", $teacher_id);
                     $stmt->execute();
                     $result = $stmt->get_result();
                     $teacher = $result->fetch_assoc();
+                    $stmt->close();
                 } else {
                     $error = "Error updating profile: " . $update_stmt->error;
                 }
